@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+    <canvas id="myCanvas" width="1800" height="950">
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+
+    <script>
+        const pixelSize = 1;
+
+        var myCanvas = {
+            canvas: document.getElementById("myCanvas"),
+            context: document.getElementById("myCanvas").getContext("2d"),
+            clear: function () {
+                this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+        }
+
+        class Pixel {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+            }
+        }
+
+        function fillRect(pixel) {
+            myCanvas.context.fillStyle = "#FF0000";
+            myCanvas.context.fillRect(pixel.x * pixelSize, pixel.y * pixelSize, pixelSize, pixelSize);
+        }
+
+        function fillLine(pixelFrom, pixelTo) {
+        	var f = parseInt(pixelSize / 2);
+            myCanvas.context.beginPath();
+            myCanvas.context.moveTo(pixelFrom.x * pixelSize + f, pixelFrom.y * pixelSize + f);
+            myCanvas.context.lineTo(pixelTo.x * pixelSize + f, pixelTo.y * pixelSize + f);
+            myCanvas.context.stroke();
+        }
+
+        var initialPixel = new Pixel(1, 1);
+        var finalPixel = new Pixel(13, 17);
+
+        fillRect(initialPixel);
+        fillRect(finalPixel);
+
+        function signal(x) {
+            return x < 0 ? -1 : 1;
+        }
+
+        moveLine();
+
+        function moveLine() {
+            var deltaX = Math.abs(finalPixel.x - initialPixel.x);
+            var deltaY = Math.abs(finalPixel.y - initialPixel.y);
+            var signalX = signal(finalPixel.x - initialPixel.x)
+            var signalY = signal(finalPixel.y - initialPixel.y)
+            var x = initialPixel.x;
+            var y = initialPixel.y;
+
+            var interchange = false;
+            if (deltaY > deltaX) {
+                var tmp = deltaX;
+                deltaX = deltaY;
+                deltaY = tmp;
+                interchange = true;
+            }
+            var erro = 2 * deltaY - deltaX;
+
+            var i = 0;
+            var interval = setInterval(function() {
+                if (i >= deltaX) {
+                    clearInterval(interval);
+                    fillLine(initialPixel, finalPixel);
+                    return;
+                }
+
+                fillRect(new Pixel(x, y));
+                while (erro >= 0) {
+                    if (interchange) {
+                        x = x + signalX;
+                    } else {
+                        y = y + signalY;
+                    }
+
+                    erro = erro - 2 * deltaX;
+                }
+
+                if (interchange) {
+                    y = y + signalY;
+                } else {
+                    x = x + signalX;
+                }
+
+                erro = erro + 2 * deltaY;
+                ++i;
+            }, 1000);
+        }
+    </script>
+
+</body>
+
+</html>
