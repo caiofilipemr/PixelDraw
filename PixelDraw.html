@@ -1,22 +1,38 @@
 <!DOCTYPE html>
 <html>
 
-<body>
+<body style="margin: 0; padding: 0;">
 
-    <canvas id="myCanvas" width="1800" height="950">
+    <canvas id="myCanvas"
+        onclick="addPoint(event)">
         Your browser does not support the HTML5 canvas tag.
     </canvas>
 
     <script>
-        const pixelSize = 1;
+        const pixelSize = 51;
+        const nPixels = 15;
+        const points = [];
 
         var myCanvas = {
             canvas: document.getElementById("myCanvas"),
             context: document.getElementById("myCanvas").getContext("2d"),
+            drawGrid: function() {
+                this.context.fillStyle = "#000000";
+                for (var i = 0; i < this.canvas.height; i = i + pixelSize) {
+                    this.context.fillRect(0, i-1, this.canvas.width, 3);
+                }
+                for (var i = 0; i < this.canvas.width; i = i + pixelSize) {
+                    this.context.fillRect(i-1, 0, 3, this.canvas.height);
+                }
+            },
             clear: function () {
                 this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.drawGrid();
             }
         }
+
+        myCanvas.canvas.height = pixelSize * nPixels + 1;
+        myCanvas.canvas.width = pixelSize * nPixels + 1;
 
         class Pixel {
             constructor(x, y) {
@@ -38,19 +54,16 @@
             myCanvas.context.stroke();
         }
 
-        var initialPixel = new Pixel(1, 1);
-        var finalPixel = new Pixel(13, 17);
-
-        fillRect(initialPixel);
-        fillRect(finalPixel);
-
         function signal(x) {
             return x < 0 ? -1 : 1;
         }
 
-        moveLine();
-
-        function moveLine() {
+        myCanvas.clear();
+        var isAnimation = false;
+        function createLine() {
+            isAnimation = true;
+            const initialPixel = points[0];
+            const finalPixel = points[1];
             var deltaX = Math.abs(finalPixel.x - initialPixel.x);
             var deltaY = Math.abs(finalPixel.y - initialPixel.y);
             var signalX = signal(finalPixel.x - initialPixel.x)
@@ -72,6 +85,7 @@
                 if (i >= deltaX) {
                     clearInterval(interval);
                     fillLine(initialPixel, finalPixel);
+                    isAnimation = false;
                     return;
                 }
 
@@ -94,7 +108,27 @@
 
                 erro = erro + 2 * deltaY;
                 ++i;
-            }, 1000);
+            }, 200);
+        }
+
+        function addPoint(event) {
+            if (isAnimation)
+                return;
+
+            const p = new Pixel(parseInt(event.clientX / pixelSize), parseInt(event.clientY / pixelSize));
+            if (points.length > 1) {
+                points.splice(0, 1);
+            }
+            points.push(p);
+
+            myCanvas.clear();
+            if (points.length > 0) {
+                fillRect(points[0]);
+            }
+            if (points.length > 1) {
+                fillRect(points[1]);
+                createLine();
+            }
         }
     </script>
 
